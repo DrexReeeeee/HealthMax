@@ -6,15 +6,12 @@ require('dotenv').config();
 const authRoutes = require('./routes/authRoutes');
 const profileRoutes = require('./routes/profileRoutes');
 const productRoutes = require('./routes/productRoutes');
-const userRoutes = require('./routes/userRoutes'); // <-- new admin/user routes
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(bodyParser.json());
-
-// Debug middleware to log all requests
 app.use((req, res, next) => {
   console.log(`[DEBUG] ${req.method} ${req.url}`);
   next();
@@ -31,10 +28,10 @@ console.log('[DEBUG] Profile routes mounted at /api/profile');
 app.use('/api/product', productRoutes);
 console.log('[DEBUG] Product routes mounted at /api/product');
 
-app.use('/api/users', userRoutes); // <-- mount user/admin routes
+app.use('/api/users', userRoutes); 
 console.log('[DEBUG] User routes mounted at /api/users');
 
-// 404 handler
+
 app.use((req, res) => {
   console.log(`[DEBUG] 404 - Route not found: ${req.method} ${req.url}`);
   res.status(404).json({ success: false, message: 'Route not found' });

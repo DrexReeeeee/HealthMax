@@ -1,4 +1,3 @@
-// controllers/userController.js
 const pool = require('../config/db');
 
 /**
@@ -43,7 +42,6 @@ async function updateUser(req, res) {
     const { email, is_admin } = req.body;
 
     try {
-        // Optional: check if user exists
         const [existing] = await pool.query("SELECT * FROM users WHERE id = ?", [userId]);
         if (existing.length === 0) {
             return res.status(404).json({ success: false, message: "User not found" });
@@ -74,15 +72,12 @@ async function deleteUser(req, res) {
     const userId = req.params.id;
 
     try {
-        // Optional: check if user exists
         const [existing] = await pool.query("SELECT * FROM users WHERE id = ?", [userId]);
         if (existing.length === 0) {
             return res.status(404).json({ success: false, message: "User not found" });
         }
 
-        // Delete user profile first (if exists)
         await pool.query("DELETE FROM user_profiles WHERE user_id = ?", [userId]);
-        // Delete user
         await pool.query("DELETE FROM users WHERE id = ?", [userId]);
 
         res.json({ success: true, message: "User deleted successfully" });

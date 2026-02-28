@@ -9,10 +9,8 @@ async function saveProfile(req, res = null) {
     const userId = req.userId;
     const { username, age, weight, diet_plan_id } = req.body;
 
-    // Default modifiers
     let sugar_modifier = 1, salt_modifier = 1, fat_modifier = 1;
 
-    // Determine modifiers based on diet plan name
     if (diet_plan_id) {
         const [dietRows] = await pool.query(
             `SELECT name
@@ -30,7 +28,6 @@ async function saveProfile(req, res = null) {
     }
 
     try {
-        // Check if username is taken (only if updating)
         if (username) {
             const [existingUsername] = await pool.query(
                 "SELECT * FROM user_profiles WHERE username = ? AND user_id != ?",
@@ -52,7 +49,6 @@ async function saveProfile(req, res = null) {
              sugar_modifier, salt_modifier, fat_modifier, userId]
         );
 
-        // Fetch updated profile with diet plan info
         const [rows] = await pool.query(
             `SELECT up.*, dp.name AS diet_plan_name, dp.description AS diet_plan_description
              FROM user_profiles up
@@ -66,7 +62,7 @@ async function saveProfile(req, res = null) {
         if (res) {
             return res.json({ success: true, profile: updatedProfile });
         } else {
-            return updatedProfile; // for internal calls (e.g., registration)
+            return updatedProfile;
         }
 
     } catch (err) {

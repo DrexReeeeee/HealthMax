@@ -21,7 +21,6 @@ async function register(req, res) {
     } = req.body;
 
     try {
-        // Validate required fields
         if (!email || !password || !username || !age || !weight || !diet_plan_id) {
             return res.status(400).json({
                 success: false,
@@ -29,7 +28,6 @@ async function register(req, res) {
             });
         }
 
-        // Check if email exists
         const [existingEmail] = await pool.query(
             "SELECT * FROM users WHERE email = ?",
             [email]
@@ -40,8 +38,6 @@ async function register(req, res) {
                 message: "Email already exists"
             });
         }
-
-        // Check if username exists
         const [existingUsername] = await pool.query(
             "SELECT * FROM user_profiles WHERE username = ?",
             [username]
@@ -53,10 +49,8 @@ async function register(req, res) {
             });
         }
 
-        // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Insert into users table
         const [result] = await pool.query(
             "INSERT INTO users (email, password, is_admin) VALUES (?, ?, ?)",
             [email, hashedPassword, is_admin || false]
@@ -64,7 +58,6 @@ async function register(req, res) {
 
         const userId = result.insertId;
 
-        // Insert initial profile (without modifiers)
         await pool.query(
             `INSERT INTO user_profiles 
              (user_id, username, age, weight, diet_plan_id)
@@ -79,14 +72,12 @@ async function register(req, res) {
         });
         console.log("Profile modifiers set during registration:", updatedProfile);
 
-        // Generate JWT token
         const token = jwt.sign(
             { id: userId, is_admin: !!is_admin },
             process.env.JWT_SECRET,
             { expiresIn: '7d' }
         );
 
-        // Send registration response
         res.status(201).json({
             success: true,
             message: "User registered successfully",

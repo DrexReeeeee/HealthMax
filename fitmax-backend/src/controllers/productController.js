@@ -11,7 +11,6 @@ async function getProduct(req, res) {
     const userId = req.userId || null; // Guest if null
 
     try {
-        // Step 1 – Check DB cache
         const [rows] = await pool.query(
             "SELECT * FROM products WHERE barcode = ?",
             [barcode]
@@ -22,9 +21,6 @@ async function getProduct(req, res) {
         let nutrients;
         let baseScoreData;
 
-        // =====================================
-        // IF PRODUCT NOT IN DB → FETCH API
-        // =====================================
         if (!product) {
             const response = await axios.get(`${OPENFOOD_API}/${barcode}.json`);
 
@@ -47,7 +43,6 @@ async function getProduct(req, res) {
 
             baseScoreData = calculateScore(nutrients);
 
-            // Save base score in DB (non-personalized)
             await pool.query(
                 `INSERT INTO products 
                 (barcode,name,brand,category,sugar,salt,saturated_fat,fiber,calories,score)
@@ -77,7 +72,6 @@ async function getProduct(req, res) {
             };
 
         } else {
-            // Product found in DB
             nutrients = {
                 sugar: product.sugar,
                 salt: product.salt,
@@ -91,10 +85,6 @@ async function getProduct(req, res) {
             product.color = baseScoreData.color;
             product.warnings = baseScoreData.warnings;
         }
-
-        // =====================================
-        // APPLY PERSONALIZATION IF LOGGED IN
-        // =====================================
         let mode = "guest";
 
         if (userId) {
@@ -107,10 +97,6 @@ async function getProduct(req, res) {
 
             mode = "personalized";
         }
-
-        // =====================================
-        // ALTERNATIVES
-        // =====================================
         const alternatives = await getAlternatives(
             product.category,
             product.score
@@ -118,7 +104,7 @@ async function getProduct(req, res) {
 
         res.json({
             success: true,
-            mode, // 🔥 tells frontend if guest or personalized
+            mode,
             product,
             alternatives
         });
